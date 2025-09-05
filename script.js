@@ -1,11 +1,15 @@
-const useProxy = true;
+// You probably don't need the proxy since you registered your domain.
+const useProxy = false;
 const proxy = "https://cors-anywhere.herokuapp.com/";
-const apiKey = 'YOUR_API_KEY'; // Replace with your API key
+
+// 1. IMPORTANT: Paste your MapmyIndia API key here as a string.
+const apiKey = 'erkwxrceapsemtqdjvqvqxupnrtjyznldmdi';
 
 function getLocation() {
     const cache = JSON.parse(localStorage.getItem('cachedLocation') || '{}');
     const now = Date.now();
 
+    // Use cached location if it's less than 10 minutes old
     if (cache.timestamp && now - cache.timestamp < 10 * 60 * 1000) {
         useLocation(cache.lat, cache.lng);
     } else {
@@ -20,10 +24,16 @@ function getLocation() {
 
 function useLocation(lat, lng) {
     const url = useProxy ? proxy : '';
-    fetch(`${url}https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1500&type=cafe&key=${apiKey}`)
+
+    // 2. This URL is now for the MapmyIndia Nearby Places API.
+    const mapplsApiUrl = `https://apis.mappls.com/advancedmaps/v1/${apiKey}/nearby_search?keywords=cafe&location=${lat},${lng}`;
+
+    fetch(url + mapplsApiUrl)
         .then(response => response.json())
         .then(data => {
-            displayCards(data.results);
+            // 3. MapmyIndia returns results in a 'suggestedLocations' array.
+            console.log(data); // Good for checking the response in the browser console!
+            displayCards(data.suggestedLocations || []);
         });
 }
 
@@ -38,22 +48,25 @@ function displayCards(cafes) {
 
         const card = document.createElement('div');
         card.className = 'card';
-        if (cafe.photos && cafe.photos.length > 0) {
-            const photoReference = cafe.photos[0].photo_reference;
-            const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${apiKey}`;
-            card.style.backgroundImage = `url(${photoUrl})`;
-        } else {
-            card.style.backgroundColor = '#cccccc'; // Fallback color
-        }
-
+        // 4. Removed the photo logic as MapmyIndia handles it differently.
+        // We'll just use a fallback color for all cards to keep it simple.
+        card.style.backgroundColor = '#62b3a5'; // A nice teal color
 
         const name = document.createElement('h2');
-        name.textContent = cafe.name;
+        name.textContent = cafe.placeName; // The property is 'placeName'
+
+        const address = document.createElement('p');
+        address.textContent = cafe.address; // Also display the address
+        address.style.color = 'white';
+        address.style.padding = '0 15px';
+        address.style.fontSize = '14px';
 
         card.appendChild(name);
+        card.appendChild(address);
         wrapper.appendChild(card);
         container.appendChild(wrapper);
 
+        // Hammer.js swipe functionality remains the same
         const hammertime = new Hammer(wrapper);
         hammertime.on('swipeleft', () => {
             wrapper.style.transform = 'translateX(-1000px)';
@@ -64,4 +77,5 @@ function displayCards(cafes) {
     });
 }
 
+// Start the app
 getLocation();
