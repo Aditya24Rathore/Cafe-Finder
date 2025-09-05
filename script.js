@@ -80,3 +80,4 @@ function displayCards(cafes) {
 // Start the app
 getLocation();
 
+
