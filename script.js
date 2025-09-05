@@ -1,5 +1,5 @@
 // You probably don't need the proxy since you registered your domain.
-const useProxy = false;
+const useProxy = true;
 const proxy = "https://cors-anywhere.herokuapp.com/";
 
 // 1. IMPORTANT: Paste your MapmyIndia API key here as a string.
@@ -79,3 +79,4 @@ function displayCards(cafes) {
 
 // Start the app
 getLocation();
+
